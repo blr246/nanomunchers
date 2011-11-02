@@ -1,20 +1,8 @@
 #ifndef _HPS_NANOMUNCHERS_DATA_FILE_GTEST_H_
 #define _HPS_NANOMUNCHERS_DATA_FILE_GTEST_H_
 #include "data_file.h"
-#include "math.h"
 #include "gtest/gtest.h"
-
-namespace hps
-{
-namespace nano
-{
-/// <summary> Equality operator for Position used during testing. </sumamry>
-inline bool operator==(const Position& lhs, const Position& rhs)
-{
-  return (lhs.x == rhs.x) && (lhs.y == rhs.y);
-}
-}
-}
+#include <math.h>
 
 /// <summary> Ostream operator for Position used during testing. </sumamry>
 inline std::ostream& operator<<(std::ostream& stream, const hps::Position& node)

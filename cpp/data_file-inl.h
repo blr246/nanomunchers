@@ -1,9 +1,7 @@
 #ifndef _HPS_NANOMUNCHERS_DATA_FILE_INL_
 #define _HPS_NANOMUNCHERS_DATA_FILE_INL_
 #include "data_file.h"
-#include <algorithm>
-#include <functional>
-#include <cctype>
+#include "string_util.h"
 
 namespace hps
 {
@@ -26,45 +24,6 @@ inline bool LoadDataFile(const std::string& filename, const LoadDataFunc func,
   }
 }
 
-namespace detail
-{
-
-/// <summary> Extract typed, formatted input from a string. </summary>
-template <typename Type>
-inline void ExtractToken(const std::string& token, Type* out)
-{
-  assert(out);
-  std::stringstream ssToken(token);
-  ssToken >> *out;
-}
-
-// reissb -- 20111102 -- String trim functions taken from:
-//   http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
-/// <summary> Trim from start. </summary>
-inline std::string& LTrim(std::string* s)
-{
-  assert(s);
-  s->erase(s->begin(), std::find_if(s->begin(), s->end(),
-           std::not1(std::ptr_fun<int, int>(std::isspace))));
-  return *s;
-}
-/// <summary> Trim from end. </summary>
-inline std::string& RTrim(std::string* s)
-{
-  assert(s);
-  s->erase(std::find_if(s->rbegin(), s->rend(),
-           std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s->end());
-  return *s;
-}
-/// <summary> Trim from both ends. </summary>
-inline std::string& Trim(std::string* s)
-{
-  assert(s);
-  return LTrim(&RTrim(s));
-}
-
-}
-
 template <typename LoadDataFunc, typename NodeData>
 bool LoadDataFile(std::ifstream& file, const LoadDataFunc func,
                   Graph<NodeData>* data)
@@ -83,11 +42,12 @@ bool LoadDataFile(std::ifstream& file, const LoadDataFunc func,
   std::getline(file, raw);
   int nodeId = 0;
   // Read all data lines. Switch modes on whitespace break.
+  bool readElementError = false;
   while (file.good())
   {
     // Get comma separated line.
     std::getline(file, raw);
-    detail::Trim(&raw);
+    Trim(&raw);
     // Victims section is over?
     if (raw.empty())
     {
@@ -96,11 +56,11 @@ bool LoadDataFile(std::ifstream& file, const LoadDataFunc func,
       do
       {
         std::getline(file, raw);
-        detail::Trim(&raw);
+        Trim(&raw);
       } while (file.good() && raw.empty());
       // Ignore the second header line.
       std::getline(file, raw);
-      detail::Trim(&raw);
+      Trim(&raw);
     }
     // Check file finished.
     if (file.eof() || file.bad())
@@ -118,16 +78,17 @@ bool LoadDataFile(std::ifstream& file, const LoadDataFunc func,
       {
         std::getline(line, raw, ',');
         valid |= !raw.empty();
-        detail::ExtractToken(raw, &nodeIdRead);
+        ExtractToken(raw, &nodeIdRead);
         std::getline(line, raw, ',');
         valid |= !raw.empty();
-        detail::ExtractToken(raw, &node.x);
+        ExtractToken(raw, &node.x);
         valid |= line.good();
         line >> node.y;
       }
       if (!valid)
       {
-        return false;
+        readElementError = !valid;
+        break;
       }
       assert(nodeIdRead == nodeId);
       ++nodeId;
@@ -143,13 +104,14 @@ bool LoadDataFile(std::ifstream& file, const LoadDataFunc func,
       {
         std::getline(line, raw, ',');
         valid |= !raw.empty();
-        detail::ExtractToken(raw, &edge.x);
+        ExtractToken(raw, &edge.x);
         valid |= line.good();
         line >> edge.y;
       }
       if (!valid)
       {
-        return false;
+        readElementError = !valid;
+        break;
       }
       assert((edge.x >= 0) && (edge.x < static_cast<int>(graphNodes.size())));
       assert((edge.y >= 0) && (edge.y < static_cast<int>(graphNodes.size())));
@@ -158,7 +120,7 @@ bool LoadDataFile(std::ifstream& file, const LoadDataFunc func,
       graphNodes[edge.y].adjacencyList.push_back(&*graphNodes.begin() + edge.x);
     }
   }
-  return !file.bad();
+  return !readElementError && !file.bad();
 }
 
 }

@@ -6,6 +6,7 @@ file(GLOB HEADERS "*.h")
 #   nanomunchers_serialize - serialization code library
 project(nanomunchers_serialize)
 set(SRCS
+    "nanomunchers_data.cpp"
     "nanomunchers_serialize.cpp")
   add_library(nanomunchers_serialize STATIC ${SRCS} ${HEADERS})
 

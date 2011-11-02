@@ -47,5 +47,5 @@ inline int GetNodeId(const Graph<NodeData>& graph,
 using namespace nano;
 }
 
-#include "data_file-inl.h"
 #endif //_HPS_NANOMUNCHERS_DATA_FILE_H_
+#include "data_file-inl.h"
