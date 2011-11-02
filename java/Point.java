@@ -1,5 +1,3 @@
-package hps.nanomunchers.architecture;
-
 public class Point 
 {
 	private int x;

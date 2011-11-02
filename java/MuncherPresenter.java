@@ -1,5 +1,3 @@
-package hps.nanomunchers.architecture;
-
 public class MuncherPresenter 
 {
 	private int nanoMuncherId;
