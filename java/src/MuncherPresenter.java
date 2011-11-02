@@ -1,6 +1,6 @@
 package hps.nanomunchers.architecture;
 
-public class NanoMuncherRepresenter 
+public class MuncherPresenter 
 {
 	private int nanoMuncherId;
 	private int time;
