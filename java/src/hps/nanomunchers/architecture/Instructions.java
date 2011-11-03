@@ -1,3 +1,5 @@
+package hps.nanomunchers.architecture;
+
 import java.util.List;
 
 public class Instructions 
@@ -22,12 +24,12 @@ public class Instructions
 	@Override
 	public String toString() 
 	{
-		String retVal = "(";
+		String retVal = "";
 		for (int i=0;i<instructions.size();++i)
 		{
-			retVal += instructions.get(i) + ",";
+			retVal += instructions.get(i) + " ";
 		}
-		retVal += instructions.size()-1 + ")";
+		retVal += instructions.size()-1;
 		
 		return retVal;
 	}

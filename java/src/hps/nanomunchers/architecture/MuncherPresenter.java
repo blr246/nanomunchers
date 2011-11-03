@@ -1,17 +1,11 @@
+package hps.nanomunchers.architecture;
+
 public class MuncherPresenter 
 {
-	private int nanoMuncherId;
 	private int time;
 	private Point location;
 	private Instructions instructions;
 	
-	
-	public int getNanoMuncherId() {
-		return nanoMuncherId;
-	}
-	public void setNanoMuncherId(int nanoMuncherId) {
-		this.nanoMuncherId = nanoMuncherId;
-	}
 	public int getTime() {
 		return time;
 	}
@@ -34,9 +28,8 @@ public class MuncherPresenter
 	
 	@Override
 	public String toString() {
-		return "(" + nanoMuncherId
-				+ "," + time + "," + location.toString()
-				+ "," + instructions.toString() + "]";
+		return time + " " + location.toString()
+				+ " " + instructions.toString();
 	}
 
 }

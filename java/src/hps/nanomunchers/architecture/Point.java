@@ -1,3 +1,5 @@
+package hps.nanomunchers.architecture;
+
 public class Point 
 {
 	private int x;
@@ -5,7 +7,7 @@ public class Point
 	
 	@Override
 	public String toString() {
-		return "(" + x + "," + y + ")";
+		return x + " " + y;
 	}
 	public int getX() {
 		return x;

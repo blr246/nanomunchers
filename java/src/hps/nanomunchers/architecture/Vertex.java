@@ -1,3 +1,5 @@
+package hps.nanomunchers.architecture;
+
 public class Vertex 
 {
 	private int nodeId;
