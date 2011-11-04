@@ -2,6 +2,14 @@ package hps.nanomunchers.architecture;
 
 public class Edge 
 {
-	int sourceNodeId;
-	int sinkNodeInd;
+	public Edge()
+	{}
+	
+	public Edge(int source, int sink)
+	{
+		this.sourceNodeId = source;
+		this.sinkNodeInd = sink;
+	}
+	public int sourceNodeId;
+	public int sinkNodeInd;
 }

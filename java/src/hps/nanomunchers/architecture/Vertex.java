@@ -2,19 +2,28 @@ package hps.nanomunchers.architecture;
 
 public class Vertex 
 {
-	private int nodeId;
-	private Point location;
+	private int m_nodeId;
+	private Point m_location;
+	
+	public Vertex()
+	{}
+	
+	public Vertex(int nodeId, Point location)
+	{
+		this.m_nodeId = nodeId;
+		this.m_location = location;
+	}
 	
 	public int getNodeId() {
-		return nodeId;
+		return m_nodeId;
 	}
 	public void setNodeId(int nodeId) {
-		this.nodeId = nodeId;
+		this.m_nodeId = nodeId;
 	}
 	public Point getLocation() {
-		return location;
+		return m_location;
 	}
 	public void setLocation(Point location) {
-		this.location = location;
+		this.m_location = location;
 	}
 }
