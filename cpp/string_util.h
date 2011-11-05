@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <cctype>
+#include <assert.h>
 #include <string>
 
 namespace hps

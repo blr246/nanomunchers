@@ -2,7 +2,6 @@
 #define _HPS_NANOMUNCHERS_NANOMUNCHERS_DATA_H_
 #include <vector>
 #include <iosfwd>
-#include <assert.h>
 
 namespace hps
 {

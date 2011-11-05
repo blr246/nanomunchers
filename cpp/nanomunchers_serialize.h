@@ -1,14 +1,14 @@
 #ifndef _HPS_NANOMUNCHERS_NANOMUNCHERS_SERIALIZE_H_
 #define _HPS_NANOMUNCHERS_NANOMUNCHERS_SERIALIZE_H_
-#include "nanomunchers_data.h"
-#include <vector>
 #include <iosfwd>
-#include <assert.h>
 
 namespace hps
 {
 namespace nano
 {
+
+// Forward declarations.
+struct Muncher;
 
 /// <summary> Serialize a muncher to string. </summary>
 bool Serialize(const Muncher& muncher, std::ostream* stream);

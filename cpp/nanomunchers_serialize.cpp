@@ -1,4 +1,5 @@
 #include "nanomunchers_serialize.h"
+#include "nanomunchers_data.h"
 #include "string_util.h"
 #include <fstream>
 #include <iostream>
