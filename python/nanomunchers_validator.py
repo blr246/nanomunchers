@@ -51,7 +51,18 @@ class Simulation:
                                     vertex[2],self.StateConst[0])
         return nodes
     
-    
+    # time = 0
+    # while nodesRemaining && munchersRemaining
+    #   for each muncher in munchers
+    #      if time == muncher.dropTime
+    #        drop muncher on graph
+    #   resolve conflicts (kill rookies and pick random rookies)
+    #   for each muncher on the graph
+    #      munch
+    #      move
+    #   resolve conflicts (up left down right precedence)
+    #   time++
+    #   
     def simulate(self,munchPresenters):
        for munchP in munchPresenters:
            if(not isRookie(munchP)):
