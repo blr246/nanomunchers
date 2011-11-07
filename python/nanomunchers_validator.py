@@ -40,6 +40,7 @@ class States:
     drop=1
     munch=2
     blackhole=3
+    killed=4
 
 class NodeState:
     notMunched=0
@@ -91,10 +92,18 @@ class Simulation:
        
         while len(self.nodes) != 0 and len(nanoMunchers) != 0:
             #drop
+            killed = []
             for nanoMuncher in nanoMunchers:
                 if(self.time == nanoMuncher.dropTime):
                     #print "dropped nanoMuncher: (%d,%d)" % (nanoMuncher.x,nanoMuncher.y)
-                    nanoMuncher.state = States.drop
+                    if(self.isValidLocation(nanoMuncher)):
+                        nanoMuncher.state = States.drop
+                    else:
+                        #print "killed...dropped at (%d,%d)" %(nanoMuncher.x,nanoMuncher.y)
+                        killed.append(nanoMuncher)
+                        nanoMuncher.state = States.killed
+            # remove all that were dropped on an already munched node or the one that didn't exist.
+            self.removeAll(nanoMunchers, killed)
             #resolve conflicts, some nanomunchers will be killed.
             self.conflictDropTime(nanoMunchers) # Nanomunchers dropped at the same node.
             
@@ -128,6 +137,17 @@ class Simulation:
             self.removeAll(nanoMunchers,blackholes) # remove all blackholes.
             
         print "Total nodes munched: %d out of: %d in time: %d" % (self.munched,self.totalNodes,self.time)
+    
+    
+    def isValidLocation(self,nanoMuncher):
+        for k,v in self.nodes.iteritems():
+            if(v.x == nanoMuncher.x and 
+                v.y == nanoMuncher.y and
+                v.state != NodeState.munched):
+                #print "Valid location (%d,%d)" %(v.x,v.y)
+                return True
+        return False
+                
     
     # This helps in identifying rookies, if the nanomuncher tries to munch an already
     # node then it is declared as rookie and is killed.
