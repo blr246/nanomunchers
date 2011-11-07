@@ -442,12 +442,29 @@ class NanoGraph(object):
             maps[0][dirs[0]] = node_pair[1]
             maps[1][dirs[1]] = node_pair[0]
 
+    def find_node_by_id(self, node_id):
+        """ Find the node with the given id and return node, edges. """
+        if self._nodes.has_key(node_id):
+            return self._nodes[node_id], self._edge_maps[node_id]
+        else:
+            return None
+
     def find_node_by_coords(self, coords):
-        """ Find the node with the given coordinates. """
+        """
+        Find the node with the given coordinates and return
+        node, edges.
+        """
         for (k, v) in self._nodes.items():
             if v.coords == coords:
-                return v
+                return v, self._edge_maps[k]
         return None
+
+    def get_edge_map(self, node_id):
+        """ Get the edge map for the node with the given id. """
+        if self._edge_maps.has_key(node_id):
+            return self._edge_maps[node_id]
+        else:
+            return None
 
 
 class Simulator(object):
