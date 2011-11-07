@@ -60,6 +60,7 @@ class Simulation:
         self.munched = 0
         self.totalNodes = len(self.vertices)
         self.nanoMunchers = []
+        self.totalNanoMunchers = 0
     
     def createNodes(self):
         nodes = {}
@@ -69,7 +70,7 @@ class Simulation:
         return nodes
     
     def simulate(self,nanoMunchers):
-       
+        self.totalNanoMunchers = len(nanoMunchers)
         # 1) we begin with dropping nanomunchers, resolving the conflicts
         # 2) munch, move and increment time step.
         # if there's no nanomunchers that are dropped then:
@@ -122,7 +123,7 @@ class Simulation:
             #remove blackholes
             self.removeAll(nanoMunchers,blackholes) # remove all blackholes.
             #print "-----------------------------Time step %d ends---------------------------------------" % self.time
-        print "Total nodes munched: %d out of: %d in time: %d" % (self.munched,self.totalNodes,self.time)
+        print "Nano munchers used: %d\nNodes munched: %d out of: %d\nTime taken: %d" % (self.totalNanoMunchers,self.munched,self.totalNodes,self.time)
         if(self.munched == self.totalNodes):
             print "You munched everything"
         else:
