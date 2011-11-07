@@ -95,7 +95,7 @@ class Simulation:
             killed = []
             for nanoMuncher in nanoMunchers:
                 if(self.time == nanoMuncher.dropTime):
-                    #print "dropped nanoMuncher: (%d,%d)" % (nanoMuncher.x,nanoMuncher.y)
+                    #print "dropped nanoMuncher: (%d,%d) at time %d" % (nanoMuncher.x,nanoMuncher.y,self.time)
                     if(self.isValidLocation(nanoMuncher)):
                         nanoMuncher.state = States.drop
                     else:
@@ -121,7 +121,7 @@ class Simulation:
                 didMove = self.moveNanoMuncher(nanoMuncher)
                 #print "didMove: " + str(didMove)
                 # if canot move, then make it a blackhole.
-                if(didMove == False):
+                if(didMove == False and nanoMuncher.dropTime < self.time):
                     blackholes.append(nanoMuncher)
                 #print "program: %s" % nanoMuncher.program
                    
@@ -181,11 +181,12 @@ class Simulation:
     # munch the graph and move forward.
     # check if the nanoMuncher has become a blackhole or not.
     def moveNanoMuncher(self,nanoMuncher):
-        #print "moving nanoMuncher..."
-        if(self.isBlackHole(nanoMuncher) == False):
-            #print "is not a blackhole..."
-            move = self.mutateNanoMuncherProgram(nanoMuncher)
-            return True
+        if(self.time >= nanoMuncher.dropTime):
+            #print "moving nanoMuncher..."
+            if(self.isBlackHole(nanoMuncher) == False):
+                #print "is not a blackhole..."
+                move = self.mutateNanoMuncherProgram(nanoMuncher)
+                return True
         return False
       
     # This function checks if the nanoMuncher has become a black hole or not.
