@@ -11,10 +11,10 @@ class FormatValidator:
         return self.parseAndValidate(programOutput)
     
     def parseAndValidate(self,programOutput):
-        #print programOutput
+        ##print programOutput
         nanomunchers = int(programOutput[0])
-        #print "number of nanomunchers dropped: %d" % nanomunchers
-        #print "number suggested by program output %d " % len(programOutput[1:])
+        ##print "number of nanomunchers dropped: %d" % nanomunchers
+        ##print "number suggested by program output %d " % len(programOutput[1:])
         if(nanomunchers != len(programOutput[1:])):
             raise Exception('NanoMunchers dropped do not match the given count');
         
@@ -93,13 +93,14 @@ class Simulation:
         while len(self.nodes) != 0 and len(nanoMunchers) != 0:
             #drop
             killed = []
+            #print "Time Step: %d" % self.time
             for nanoMuncher in nanoMunchers:
                 if(self.time == nanoMuncher.dropTime):
                     #print "dropped nanoMuncher: (%d,%d) at time %d" % (nanoMuncher.x,nanoMuncher.y,self.time)
                     if(self.isValidLocation(nanoMuncher)):
                         nanoMuncher.state = States.drop
                     else:
-                        #print "killed...dropped at (%d,%d)" %(nanoMuncher.x,nanoMuncher.y)
+                        ##print "killed...dropped at (%d,%d)" %(nanoMuncher.x,nanoMuncher.y)
                         killed.append(nanoMuncher)
                         nanoMuncher.state = States.killed
             # remove all that were dropped on an already munched node or the one that didn't exist.
@@ -109,8 +110,8 @@ class Simulation:
             
             blackholes = []
             for nanoMuncher in nanoMunchers:
-                if(self.time == nanoMuncher.dropTime):
-                    #print "nanoMuncher at (%d,%d) is munching." %(nanoMuncher.x,nanoMuncher.y)
+                if(self.time >= nanoMuncher.dropTime):
+                    print "nanoMuncher at (%d,%d) is munching." %(nanoMuncher.x,nanoMuncher.y)
                     #munch
                     #print "program before moving: %s" % nanoMuncher.program
                     self.markNodeMunched(nanoMuncher)
@@ -119,11 +120,11 @@ class Simulation:
             
             for nanoMuncher in nanoMunchers:
                 didMove = self.moveNanoMuncher(nanoMuncher)
-                #print "didMove: " + str(didMove)
+                ##print "didMove: " + str(didMove)
                 # if canot move, then make it a blackhole.
                 if(didMove == False and nanoMuncher.dropTime < self.time):
                     blackholes.append(nanoMuncher)
-                #print "program: %s" % nanoMuncher.program
+                ##print "program: %s" % nanoMuncher.program
                    
             #print "blackholes: " + str(blackholes)
             self.time += 1
@@ -144,7 +145,7 @@ class Simulation:
             if(v.x == nanoMuncher.x and 
                 v.y == nanoMuncher.y and
                 v.state != NodeState.munched):
-                #print "Valid location (%d,%d)" %(v.x,v.y)
+                ##print "Valid location (%d,%d)" %(v.x,v.y)
                 return True
         return False
                 
@@ -152,12 +153,12 @@ class Simulation:
     # This helps in identifying rookies, if the nanomuncher tries to munch an already
     # node then it is declared as rookie and is killed.
     def markNodeMunched(self,nanoMuncher):
-        #print "marking nodes as munched for nanoMuncher at (%d,%d)" % (nanoMuncher.x,nanoMuncher.y)
+        print "marking nodes as munched for nanoMuncher at (%d,%d)" % (nanoMuncher.x,nanoMuncher.y)
         for k,v in self.nodes.iteritems():
             if(v.x == nanoMuncher.x and 
                 v.y == nanoMuncher.y):
                 self.nodes[k].state = NodeState.munched
-                #print "...node at (%d,%d), marked as munched" % (v.x,v.y)
+                print "...node at (%d,%d), marked as munched" % (v.x,v.y)
 
     #This function checks for rookies.
     def removeRookies(self,nanoMunchers):
@@ -186,29 +187,35 @@ class Simulation:
             if(self.isBlackHole(nanoMuncher) == False):
                 #print "is not a blackhole..."
                 move = self.mutateNanoMuncherProgram(nanoMuncher)
+                print "nanomuncher at (%d,%d), actually moved in %s direction" % (nanoMuncher.x,
+                                                                                  nanoMuncher.y,
+                                                                                  nanoMuncher.program[-1])
+                #print "move: " + str(move)
+                nanoMuncher.x = move[1].x
+                nanoMuncher.y = move[1].y
                 return True
         return False
       
     # This function checks if the nanoMuncher has become a black hole or not.
     def isBlackHole(self,nanoMuncher):
         #print "checking if nanoMuncher at (%d,%d) is a blackhole." % (nanoMuncher.x,nanoMuncher.y)
-        initProgram = nanoMuncher.program
         count = 1
-        ##print "len(nanoMuncher.program) %d" % len(nanoMuncher.program)
+        #print "len(nanoMuncher.program) %d" % len(nanoMuncher.program)
         while(count != len(nanoMuncher.program)):
+            initProgram = nanoMuncher.program
             move = self.mutateNanoMuncherProgram(nanoMuncher)
             if(move != ()):
                 self.restoreNanoMuncherProgram(nanoMuncher,initProgram)
                 #print "Not a blackhole..."
                 return False
             count += 1
-            ##print "count: %d" % count
+            #print "count: %d" % count
         #print "a blackhole..."
         return True   
     
     # Instead of program counter, we are rotating the program.
     def mutateNanoMuncherProgram(self,nanoMuncher):
-        #print "mutating nanoMuncher at (%d,%d)" % (nanoMuncher.x,nanoMuncher.y)
+        ##print "mutating nanoMuncher at (%d,%d)" % (nanoMuncher.x,nanoMuncher.y)
         move = self.tryMove(nanoMuncher)
         nanoMuncher.program = nanoMuncher.program[1:] + nanoMuncher.program[0]
         #print "move after mutation: " + str(move)
@@ -218,6 +225,7 @@ class Simulation:
     def restoreNanoMuncherProgram(self,nanoMuncher, initProgram):
         #print "restoring nanomuncher's move..."
         #print "nanomuncher at (%d,%d)" %(nanoMuncher.x,nanoMuncher.y)
+        print "Undoing move in %s direction, so that nanoMuncher can actually move" % nanoMuncher.program[-1]
         nanoMuncher.program = initProgram
         #print "Restoring done..."
     
@@ -238,32 +246,35 @@ class Simulation:
             y = y-1
         elif(direction == "U"):
             y = y+1
-        #print "Trying to move towards: (%d,%d)" % (x,y)
+        print "Trying to move towards: (%d,%d) in direction %s" % (x,y,direction)
         for edge in self.edges:
             node1 = self.nodes[edge[0]]
             node2 = self.nodes[edge[1]]
             if(self.isValidMove(x,y,node1)):
+                #print "moved"
                 return (edge,node1)
             elif(self.isValidMove(x,y,node2)):
+                #print "moved"
                 return (edge, node2)
-                
+        print "cannot move in %s direction" % direction       
         return ()       
   
             
     # Checks if the intent to move matches with the actual node
     def isValidMove(self,x,y,node):
-        #print "checking if node is valid..."
+        ##print "checking if node is valid..."
         if (x == node.x and y == node.y):
-            #print "Valid move"
+            ##print "Valid move"
             return True
         else:
-            #print "Invalid move"
+            ##print "Invalid move"
             return False
     
 
     # This function resolves conflicts between nanoMunchers which reach the same
     # node while munching
     def conflictSameNode(self,nanoMunchers):
+        #print "conflict Same Node..."
         up = left = down = right = []
         conflictedNanoMunchers=[]
         for i in range(0,len(nanoMunchers)):
@@ -302,6 +313,7 @@ class Simulation:
         
         conflictedNanoMunchers = up + left + down + right
         if(len(conflictedNanoMunchers) !=0):
+            #print "conflicts same node arose"
             self.removeAll(nanoMunchers,conflictedNanoMunchers)
             nanoMunchers.append(retNanoMuncher)
 
@@ -334,8 +346,8 @@ class Simulation:
         random.shuffle(conflictedNanoMunchers)
         
         if(len(conflictedNanoMunchers) != 0):
-            #print "conflict arose while dropping..."
-            #print "conflicted nanoMunchers: " + str(conflictedNanoMunchers)
+            ##print "conflict arose while dropping..."
+            ##print "conflicted nanoMunchers: " + str(conflictedNanoMunchers)
             winner = conflictedNanoMunchers[0]
         
             #remove all conflicted.
