@@ -1,6 +1,11 @@
 import sys,os
 from nanomunchers_serialize import MuncherPresenter
 
+class NanoMunchers(MuncherPresenter):
+    def __init__(self,dropTime,x,y,state):
+        MuncherPresenter.__init__(dropTime,x,y)
+        self.state = state
+
 class FormatValidator:
     def validate(self,programOutput):
         return self.parseAndValidate(programOutput)
@@ -26,6 +31,13 @@ class Node:
         self.xloc = xloc
         self.yloc = yloc
         self.state = state
+
+class States:
+    init=0
+    drop=1
+    munch=2
+    blackhole=3
+
         
 class Simulation:
 
@@ -38,11 +50,12 @@ class Simulation:
 
         self.vertices = [lis for lis in refinedF if len(lis) == 3]
         self.edges = [lis for lis in refinedF if len(lis) ==2]
-
+        self.time =0
         self.remainingEdges = self.edges
         self.nodes = self.createNodes();
         self.munched = []
         self.StateConst = ["notmunched","munched"]
+        self.nanoMunchers = []
     
     def createNodes(self):
         nodes = {}
@@ -63,65 +76,182 @@ class Simulation:
     #   resolve conflicts (up left down right precedence)
     #   time++
     #   
-    def simulate(self,munchPresenters):
-       for munchP in munchPresenters:
-           if(not isRookie(munchP)):
-               self.munchGraph(munchP)
-           else:
-               print "Muncher at (%d,%d) acted like a rookie, it's been killed." %
-               (munchP.x,munchP.y)
-       print "Nodes munched: %d out of %d" % (len(self.munched),len(self.vertices))
-     
-    def isRookie(self,munchP):
-        for k,v in self.nodes:
-            if(v.x == munchP.x and v.y == munchP.y and v.state != self.StateConst[0]):
+    def simulate(self,nanoMunchers):
+       
+        while len(self.nodes) != 0 and len(nanoMunchers) != 0:
+            for nanoMuncher in nanoMunchers:
+                if(time == nanoMuncher.dropTime):
+                    nanoMuncher.state = States.drop
+            self.conflictSameNodeDropTime(nanoMunchers)
+
+            time += 1
+
+            deadMunchers = []
+            for nanoMuncher in nanoMunchers:
+               if(self.time > nanoMuncher.dropTime):
+                   munched = self.munchGraph(nanoMuncher)
+                   if(not munched):
+                       deadMunchers.append(nanoMuncher)
+            self.conflictSameNode(nanoMunchers)
+            self.removeRookies(nanoMunchers)
+            self.removeAll(nanoMunchers,deadMunchers)
+            self.markNodesMunched()
+        print "Total nodes munched: %d out of: %d." % (len(self.munched),len(self.vertices))
+    
+    # THis helps in identifying rookies, if the nanomuncher tries to munch an already
+    # node then it is declared as rookie and is killed.
+    def markNodesMunched(self,nanoMunchers):
+        for nanoMuncher in nanoMunchers:
+            for k,v in self.nodes.iteritems():
+                if(v.x = nanoMuncher.x 
+                   and v.y = nanoMuncher.y
+                   and nanoMuncher.dropTime < self.time):
+                    self.nodes[k].state = StateConst[1]
+
+    #This function checks for rookies.
+    def checkRookies(self,nanoMunchers):
+        rookies=[]
+        for nanoMuncher in nanoMunchers:
+            if(nanoMuncher.dropTime < self.time 
+               and isRookie(nanoMuncher)):
+                rookies.append(nanoMuncher)
+         self.removeAll(nanoMunchers,rookies)
+
+    # Rookie condition
+    def isRookie(self,nanoMuncher):
+        for k,v in self.nodes.iteritems():
+            if(nanoMuncher.x == v.x and nanoMuncher.y = v.y and v.state=StateConst[1]):
                 return True
         return False
 
-    def munchGraph(self,munchP):
-       while(not self.isBlackHole(munchP)):
-           move = self.mutateMuncherPresenter(munchP)
+    # munch the graph and move forward.
+    # check if the nanoMuncher has become a blackhole or not.
+    def munchGraph(self,nanoMuncher):
+       if(not self.isBlackHole(nanoMuncher)):
+           move = self.mutateMuncherPresenter(nanoMuncher)
            self.munched.append(self.nodes[move[1]])
+           return True
+       else:
+           return False
            
-           self.nodes[move[1]].state = self.StateConst[1]
 
-           indexEdge = self.getEdgeIndex(move[0])
-           if(indexEdge == -1):
-               raise Exception("Attempt to erase an unexisting Edge.")
-           del self.remainingEdges[indexEdge]
-           
-    def isBlackHole(self,munchP):
-      initProgram = munchP.program
+
+    # This function resolves conflicts between nanoMunchers which reach the same
+    # node while munching
+    def conflictSameNode(nanoMunchers):
+       left = down = right = []
+       confclitedNanoMunchers=[]
+       for i in range(0,len(nanoMunchers)):
+            for j in range(i,len(nanoMunchers)):
+                if(self.isMunching(nanoMunchers[i],nanoMunchers[j]):
+                       conflictedNanoMunchers.append(nanoMunchers[j])
+       
+       retNanoMuncher = None
+       for nanoMuncher in conflictedNanoMunchers:
+           lastMove = nanoMuncher.program[-1]
+           if(lastMove == "U"):
+               up.append(nanoMuncher)
+           elif(lastMove == "L"):
+               left.append(nanoMuncher)
+           elif(lastMove == "D"):
+               down.append(nanoMuncher)
+           elif(lastMove =="R"):
+               right.append(nanoMuncher)
+       
+       random.shuffle(up)
+       random.shuffle(left)
+       random.shuffle(down)
+       random.shuffle(right)
+       if(len(up)!=0):
+           retNanoMuncher = up[0]
+           del up[0]
+       elif(len(left) != 0):
+           retNanoMuncher = left[0]
+           del left[0]
+       elif(len(down)!=0):
+           retNanoMuncher = down[0]
+           del left[0]
+       elif(len(right) !=0 ):
+           retNanoMuncher =  right[0]
+           del right[0]
+       
+       conflictedNanoMunchers = up + left + down + right
+       self.removeAllConflicted(nanoMunchers,conflictedNanoMunchers)
+       return retNanoMuncher
+
+# Improve efficiency by augmenting the DS.
+    def isMunching(self,nm1,nm2):
+       if (nm1.dropTime == nm2.dropTime
+           and self.time > nm1.dropTime
+           and nm1.x ==nm2.x and nm1.y == nm2.y):
+            return True      
+       else:
+            return False
+    
+    # This function resolves the conflicts between the nanomunchers 
+    # dropped at the same time
+    def conflictSameNodeDropTime(self,nanoMunchers):
+        conflictedNanoMunchers=[]
+        for i in range(0,len(nanoMunchers)):
+            for j in range(i,len(nanoMunchers)):
+                if(self.isSame(nanoMunchers[i],nanoMunchers[j]):
+                       conflictedNanoMunchers.append(nanoMunchers[j])
+                   
+        random.shuffle(conflictedNanoMunchers)
+        winner = conflictedNanoMuncher[0]
+        del conflictedNanoMuncher[0]
+        self.removeAllConflicted(nanoMunchers,conflictedNanoMunchers)
+        return winner
+
+# removes all the munchers which are in list 2 from list 1
+   def removeAll(self,nanoMunchers,conflictedNanoMunchers):
+       for conclictedNm in conflictedNanoMunchers:
+           self.findAndRemove(nanoMunchers,conflictedNm)
+  
+  
+   def findAndRemove(nanoMunchers,conflictedNm):
+       for i in range(0,len(nanoMunchers)):
+           if(nanoMunchers[i].x == conflitedNm.x and 
+              nanoMunchers[j].y == conflictedNm.y):
+              del nanoMunchers[i]
+              break
+
+  # This function checks if nm1 is similar to nm2 and checks if their drop time is equal
+  # to current time.
+   def isSame(self,nm1,nm2):
+       if (nm1.dropTime == nm2.dropTime
+           and self.time == nm1.dropTime
+           and nm1.x ==nm2.x and nm1.y == nm2.y):
+            return True      
+       else:
+            return False
+# This function checks if the nanoMuncher has become a black hole or not.
+    def isBlackHole(self,nanoMuncher):
+      initProgram = nanoMuncher.program
       count = 1
       while(count != 4):
-          move = self.mutateMuncherPresenter(munchP)
+          move = self.mutateNanoMuncherProgram(nanoMuncher)
           if(move != ()):
-              self.restoreMuncherPresenter(munchP,initProgram)
+              self.restoreNanoMuncherProgram(nanoMuncher,initProgram)
               return True
           count += 1
       return False   
 
-
-    def getEdgeIndex(self,edge):
-        for i in range(0,self.remainingEdges):
-            if(edges[0] == self.remainingEdges[i][0] and 
-               edges[1] == self.remainingEdges[i][1]):
-                return i
-        return -1
-
-    def mutateMuncherPresenter(self,munchP):
-      move = self.tryMove(munchP)
-      munchP.program = munchP.program[1:] + munchP.program[0]
+# Instead of program counter, we are rotating the program.
+    def mutateNanoMuncherProgram(self,nanoMuncher):
+      move = self.tryMove(nanoMuncher)
+      nanoMuncher.program = nanoMuncher.program[1:] + nanoMuncher.program[0]
       return move
 
-    def restoreMuncherPresenter(self,munchP, initProgram):
-      munchP.program = initProgram
+# Restore the program
+    def restoreNanoMuncherProgram(self,nanoMuncher, initProgram):
+      nanoMuncher.program = initProgram
           
 
-    def tryMove(self,munchPresenter):
-        direction = munchPresenter.program[0]
-        x = munchPresenter.x
-        y = munchPresenter.y
+    def tryMove(self,nanoMuncher):
+        direction = nanoMuncher.program[0]
+        x = nanoMuncher.x
+        y = nanoMuncher.y
 
         if(direction == "L"):
             x = x-1
@@ -140,43 +270,12 @@ class Simulation:
             elif(self.isValidMove(x,y,node2)):
                 return (edge, node2)
                 
-        return ()
-   
-    # This function expects a tuple representing 
-    # a nanomuncher id and direction the it was moving in
-    def conflictSameNode(conflictedMunchPresenters):
-       left = down = right = []
-       
-       for munchP in conflictedMunchPresneters:
-           lastMove = munchP.program[-1]
-           if(lastMove == "U"):
-               return munchP
-           elif(lastMove == "L"):
-               left.append(munchP)
-           elif(lastMove == "D"):
-               down.append(munchP)
-           elif(lastMove =="R"):
-               right.append(munchP)
-       
-       if(len(left) != 0):
-           return left[0]
-       elif(len(down)!=0):
-           return dowb[0]
-       elif(len(right)):
-           return right[0]
-       return None        
-       
-
-    # This function resolves the conflicts between the nanomunchers 
-    # dropped at the same time
-    def conflictSameNodeDropTime(conflictedMunchPresenters):
-       random.shuffle(conflictedMunchPresenters)
-       return conflictedMunchPresenters[0]
+        return ()       
   
             
      # Checks if the intent to move matches with the actual node
     def isValidMove(self,x,y,node):
-        return (x == node.x and y == node.y and node.state==self.StateConst[0])
+        return (x == node.x and y == node.y)
     
 
 def runValidator(programOutput):
