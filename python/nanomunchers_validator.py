@@ -42,17 +42,23 @@ class NodeState:
     notMunched=0
     munched=1        
 
+
+def read_data_file(filename):
+    lines = [line.replace('\n','').split(",") 
+             for line in open(filename,'r').readlines() 
+             if line!="\n" and
+             line.replace('\n','')!="nodeid,xloc,yloc" and
+             line.replace('\n','')!="nodeid1,nodeid2"]
+
+    vertices = [tuple([int(l) for l in lis]) for lis in lines if len(lis) is 3]
+    edges = [tuple([int(l) for l in lis]) for lis in lines if len(lis) is 2]
+    return vertices, edges
+
+
 class Simulation:
 
     def __init__(self,filename):
-        refinedF = [line.replace('\n','').split(",") 
-                    for line in open(filename,'r').readlines() 
-                    if line!="\n" and
-                    line.replace('\n','')!="nodeid,xloc,yloc" and
-                    line.replace('\n','')!="nodeid1,nodeid2"]
-
-        self.vertices = [lis for lis in refinedF if len(lis) == 3]
-        self.edges = [lis for lis in refinedF if len(lis) ==2]
+        self.vertices, self.edges = read_data_file(filename)
         self.time =0
         self.nodes = self.createNodes();
         self.munched = 0
@@ -300,7 +306,175 @@ class Simulation:
 def runValidator(filename,programOutput):
     munchPresenters = FormatValidator().validate(programOutput)
     Simulation(filename).simulate(munchPresenters)
+
     
+###############################################################################
+###############################################################################
+# reissb -- 20111107 -- Updated structures to make life easy.
+class Muncher(object):
+    """ A muncher is dropped on the NanoGraph to eat toxic waste. """
+    def __init__(self, start_time, start_id, program):
+        self._start_time = start_time
+        self._start_id = start_id
+        self._node_id = start_id
+        self._program = program
+
+    def get_start_time(self):
+        return self._start_time
+    def get_start_id(self):
+        return self._start_id
+    def get_node_id(self):
+        return self._node_id
+    def get_program(self):
+        return self._program
+    start_time = property(get_start_time, doc="Time muncher is dropped.")
+    start_id = property(get_start_id, doc="Node id where muncher is dropped.")
+    node_id = property(get_node_id, doc="Current node locked by this muncher.")
+    program = property(get_program, doc="The muncher program.")
+
+
+class NanoGraph(object):
+    """
+    A collection of nodes and edges. All edges are one unit length and point
+    either Left, Right, Up, or Down. All nodes begin as contaminated until
+    they are munched by a nanomuncher.
+    """
+    class Point(object):
+        """ Simple 2d coordinate. """
+        def __init__(self, x, y):
+            self._x = x
+            self._y = y
+
+        def __add__(self, other):
+            return NanoGraph.Point(self.x + other.x, self.y + other.y)
+
+        def __sub__(self, other):
+            return NanoGraph.Point(self.x - other.x, self.y - other.y)
+
+        def __eq__(self, other):
+            return self.x == other.x and self.y == other.y
+
+        def __repr__(self):
+            return "<{0}, {1}>".format(self.x, self.y)
+
+        def get_x(self):
+            return self._x
+        def get_y(self):
+            return self._y
+        x = property(get_x)
+        y = property(get_y)
+
+
+    class Node(object):
+        """ A node in the graph. Begins in the contaminated state. """
+        def __init__(self, id, coords):
+            self._id = id
+            self._coords = NanoGraph.Point(*coords)
+            self._contaminated = True
+
+        def munch(self):
+            """ Munch this node. """
+            if self.contaminated:
+                self._contaminated = False
+            else:
+                raise Exception("Node with id {0} was already "
+                                "munched.".format(self.id))
+
+        def get_id(self):
+            return self._id
+        def get_coords(self):
+            return self._coords
+        def get_contaiminated(self):
+            return self._contaminated
+        def get_munched(self):
+            return not self._contaminated
+
+        def __repr__(self):
+            return "<{0}: {1} {2}>".format(self.id, self.coords,
+                                           "contaminated" if self.contaminated
+                                           else "munched")
+
+        id = property(get_id, doc="Node id.")
+        coords = property(get_coords, doc="Node coordinates.")
+        contaminated = property(get_contaiminated,
+                                doc="True when the node is contaminated.")
+        munched = property(get_munched, doc="True when the node was munched.")
+
+
+    def __init__(self, nodes, edges):
+        """
+        Initialize from arrays of tuples (id, x, y) for nodes and (id, id)
+        for edges.
+        """
+        def check_edge_except(maps, dirs, edge):
+            """ Check edges for valid direction and duplicates. """
+            if abs(edge_dir.x) + abs(edge_dir.y) is not 1:
+                raise Exception("Edge {0} has invalid direction {1}."
+                                .format(edge, (edge_dir.x, edge_dir.y)))
+            for map, dir, id in zip(maps, dirs, edge):
+              if map[dir] is not None:
+                  dup_edges = [edge, (dir, map[dir].id)]
+                  raise Exception("Node {0} has duplicate {1} edges {2}."
+                                  .format(id, dir, dup_edges))
+
+        node_pairs = [(n[0], NanoGraph.Node(n[0], (n[1], n[2])))
+                      for n in nodes]
+        self._nodes = dict(node_pairs)
+        # Initialize edge maps.
+        edge_map_pairs = [(n[0], { 'L': None, 'R': None, 'U': None, 'D': None})
+                          for n in nodes]
+        self._edge_maps = dict(edge_map_pairs)
+        for edge in edges:
+            # Determine edge direction.
+            node_pair = (self._nodes[edge[0]], self._nodes[edge[1]])
+            edge_dir = node_pair[0].coords - node_pair[1].coords
+            if edge_dir.x is 1:
+                dirs = ('L', 'R')
+            elif edge_dir.x is -1:
+                dirs = ('R', 'L')
+            elif edge_dir.y is 1:
+                dirs = ('D', 'U')
+            elif edge_dir.y is -1:
+                dirs = ('U', 'D')
+            # Validate edge and add to maps.
+            maps = (self._edge_maps[edge[0]], self._edge_maps[edge[1]])
+            check_edge_except(maps, dirs, edge)
+            maps[0][dirs[0]] = node_pair[1]
+            maps[1][dirs[1]] = node_pair[0]
+
+    def find_node_by_coords(self, coords):
+        """ Find the node with the given coordinates. """
+        for (k, v) in self._nodes.items():
+            if v.coords == coords:
+                return v
+        return None
+
+
+class Simulator(object):
+    """
+    Manage the list of scheduled, running, and dead Nanomunchers to munch
+    a NanoGraph.
+    """
+    def run(self):
+        # For each time step:
+        #   1) Drop scheduled munchers onto free nodes.
+        #   2) Munch at current node.
+        #   3) Advance munchers and resolve conflicts.
+        while (len(self.scheduled) is not 0 and
+               self.scheduled[0].start_time is self.sim_time):
+            drop_muncher = popleft()
+            start_node = self.nanograph.find_by_coords(drop_muncher.start_pos)
+            if start_node is None:
+                raise Exception("Muncher start position {0} is not in the "
+                                "graph.".format(str(start_node.start_pos)))
+            elif start_node.contaminated:
+                self._running.append(drop_muncher)
+                
+
+# reissb -- 20111107 -- Updated structures to make life easy.
+###############################################################################
+###############################################################################
+
 
 def main():
         if(len(sys.argv) == 2):
