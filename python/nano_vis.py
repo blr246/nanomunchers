@@ -68,11 +68,12 @@ class NanoVis(object):
         global CELL_WIDTH
         CELL_WIDTH=60
 
-        def __init__(self, munchers, live_nodes, dead_nodes, edges):
+        def __init__(self, munchers, live_nodes, dead_nodes, edges, time):
             self._munchers = munchers
             self._live_nodes = live_nodes
             self._dead_nodes = dead_nodes
             self._edges = edges
+            self._time = time
 
         @classmethod
         def from_dom(cls, dom):
@@ -89,7 +90,8 @@ class NanoVis(object):
                 dead_nodes.append(eval(node.firstChild.nodeValue))
             for edge in xml_get_ele_dom(dom, 'Edges').childNodes:
                 edges.append(eval(edge.firstChild.nodeValue))
-            return cls(munchers, live_nodes, dead_nodes, edges)
+            time = eval(xml_get_ele_val_str(dom, 'Time'))
+            return cls(munchers, live_nodes, dead_nodes, edges, time)
 
         def get_munchers(self):
             return self._munchers
@@ -99,11 +101,14 @@ class NanoVis(object):
             return self._dead_nodes
         def get_edges(self):
             return self._edges
+        def get_time(self):
+            return self._time
 
         munchers = property(get_munchers, doc="Munchers currently on the board")
         live_nodes = property(get_live_nodes, doc="Food remaining on the board")
         dead_nodes = property(get_dead_nodes, doc="Food that has been removed from the board")
         edges = property(get_edges, doc="Edges between nodes")
+        time = property(get_time, doc="Current simulation time")
 
     def __init__(self, setup_params):
         ''' Setup the game visualization plot. '''
@@ -141,7 +146,7 @@ class NanoVis(object):
         Update the game visualization from the GameUpdate data using
         canvas blit.
         '''
-        time.sleep(0.2)
+        time.sleep(0.3)
         self._canvas.delete(tk.ALL)
         for edge in game_update.edges:
           self._canvas.create_line(self._vo_x + self.t_x(edge[0][0]),
@@ -169,6 +174,8 @@ class NanoVis(object):
                                    self._vo_x + self.t_x(muncher[0]) + 10,
                                    self._vo_y + self.t_y(muncher[1]) + 10,
                                    width=0, fill='red')
+        textpos = (self.t_x(10),20)
+        self._canvas.create_text(textpos,text=("Time: " + str(game_update.time)),anchor="center")
         self._draw_board()
         self._canvas.update()
 

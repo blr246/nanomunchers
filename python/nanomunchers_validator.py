@@ -411,6 +411,9 @@ class Simulation:
         base.appendChild(live_nodes)
         base.appendChild(dead_nodes)
         base.appendChild(edges)
+        time = doc.createElement("Time")
+        time.appendChild(doc.createTextNode(str(self.time)))
+        base.appendChild(time)
         return doc.toxml()
      
     def openVis(self):
