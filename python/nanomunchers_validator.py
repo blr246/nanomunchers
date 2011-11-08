@@ -422,8 +422,11 @@ class Simulation:
         self.writeVis("<NanoVis.SetupParams><DimX>20</DimX><DimY>10</DimY></NanoVis.SetupParams>")
     
     def writeVis(self, string):
+      try:
         if ((not (self.vis == None)) and not self.vis.stdin.closed):
-            self.vis.stdin.write(string + os.linesep)
+          self.vis.stdin.write(string + os.linesep)
+      except:
+        pass
 
 
 def runValidator(filename,programOutput):
