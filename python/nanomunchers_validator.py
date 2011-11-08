@@ -11,23 +11,33 @@ class FormatValidator:
         return self.parseAndValidate(programOutput)
     
     def parseAndValidate(self,programOutput):
+        startLine = 0
+        for line in programOutput[0:]:
+          if line.strip() == '':
+            startLine += 1
+          else:
+            break
+          
         try:
-          nanomunchers = int(programOutput[0])
-          startLine = 1
+          nanomunchers = int(programOutput[startLine])
+          startLine += 1
         except:
-          startLine = 0 #There was no nMunchers, probably because of me. --RJS
+          nanomunchers = None #There was no nMunchers, probably because of me. --RJS
 
-        if(startLine == 1 and nanomunchers != len(programOutput[1:])):
-            raise Exception('NanoMunchers dropped do not match the given count');
-        
         munchPresenters = []
         for line in programOutput[startLine:]:
+            if line.strip() == '':
+              continue
             presenter = line.split(' ')
             munchP = MuncherPresenter(int(presenter[0]),
                                       int(presenter[1]),
                                       int(presenter[2]),
                                       presenter[3])
             munchPresenters.append(munchP)
+
+        if(nanomunchers != None and nanomunchers != len(munchPresenters)):
+            raise Exception('NanoMunchers dropped do not match the given count');
+
         return sorted(munchPresenters,key=lambda mp:mp.dropTime)
 
 class Node:
