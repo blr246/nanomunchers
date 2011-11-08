@@ -76,6 +76,7 @@ class Simulation:
     
     def simulate(self,nanoMunchers):
         self.openVis()
+        self.writeVis(self.toxml(()))
         self.totalNanoMunchers = len(nanoMunchers)
         # 1) we begin with dropping nanomunchers, resolving the conflicts
         # 2) munch, move and increment time step.
@@ -96,6 +97,7 @@ class Simulation:
                         #print "killed...dropped at (%d,%d)" %(nanoMuncher.x,nanoMuncher.y)
                         killed.append(nanoMuncher)
                         nanoMuncher.state = States.killed
+            self.writeVis(self.toxml(nanoMunchers))
             #print "|REMOVE THOSE THAT WERE DROPPED AT MUNCHED NODE|"
             # remove all that were dropped on an already munched node or the one that didn't exist.
             self.removeAll(nanoMunchers, killed)
