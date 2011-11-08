@@ -61,11 +61,11 @@ class NodeState:
 class Simulation:
 
     def __init__(self,filename):
-        refinedF = [line.replace('\n','').split(",") 
+        refinedF = [line.replace('\n','').replace('\r','').split(",") 
                     for line in open(filename,'r').readlines() 
-                    if line!="\n" and
-                    line.replace('\n','')!="nodeid,xloc,yloc" and
-                    line.replace('\n','')!="nodeid1,nodeid2"]
+                    if (line!="\n" or line!='\r') and
+                    line.replace('\n','').replace('\r','')!="nodeid,xloc,yloc" and
+                    line.replace('\n','').replace('\r','')!="nodeid1,nodeid2"]
 
         self.vertices = [lis for lis in refinedF if len(lis) == 3]
         self.edges = [[int(idx) for idx in lis] for lis in refinedF if len(lis) ==2]
