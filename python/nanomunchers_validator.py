@@ -11,13 +11,17 @@ class FormatValidator:
         return self.parseAndValidate(programOutput)
     
     def parseAndValidate(self,programOutput):
-        nanomunchers = int(programOutput[0])
+        try:
+          nanomunchers = int(programOutput[0])
+          startLine = 1
+        except:
+          startLine = 0 #There was no nMunchers, probably because of me. --RJS
 
-        if(nanomunchers != len(programOutput[1:])):
+        if(startLine == 1 and nanomunchers != len(programOutput[1:])):
             raise Exception('NanoMunchers dropped do not match the given count');
         
         munchPresenters = []
-        for line in programOutput[1:]:
+        for line in programOutput[startLine:]:
             presenter = line.split(' ')
             munchP = MuncherPresenter(int(presenter[0]),
                                       int(presenter[1]),
