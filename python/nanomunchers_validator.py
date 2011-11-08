@@ -1,4 +1,4 @@
-import sys,random,xml.dom.minidom
+import sys,random,xml.dom.minidom,subprocess,os
 from nanomunchers_serialize import MuncherPresenter
 
 class NanoMunchers(MuncherPresenter):
@@ -65,6 +65,7 @@ class Simulation:
         self.totalNodes = len(self.vertices)
         self.nanoMunchers = []
         self.totalNanoMunchers = 0
+        self.vis = None
     
     def createNodes(self):
         nodes = {}
@@ -74,6 +75,7 @@ class Simulation:
         return nodes
     
     def simulate(self,nanoMunchers):
+        self.openVis()
         self.totalNanoMunchers = len(nanoMunchers)
         # 1) we begin with dropping nanomunchers, resolving the conflicts
         # 2) munch, move and increment time step.
@@ -127,7 +129,8 @@ class Simulation:
             #remove blackholes
             self.removeAll(nanoMunchers,blackholes) # remove all blackholes.
             #print "-----------------------------Time step %d ends---------------------------------------" % self.time
-            #print self.toxml()
+            self.writeVis(self.toxml(nanoMunchers))
+        self.writeVis("")
         print "Nano munchers used: %d\nNodes munched: %d out of: %d\nTime taken: %d" % (self.totalNanoMunchers,self.munched,self.totalNodes,self.time)
         if(self.munched == self.totalNodes):
             print "You munched everything"
@@ -355,7 +358,7 @@ class Simulation:
         else:
             return False
 
-    def toxml(self):
+    def toxml(self, nanoMunchers):
         # Create the minidom document
         doc = xml.dom.minidom.Document()
         # Create the <wml> base element
@@ -366,8 +369,8 @@ class Simulation:
         dead_nodes = doc.createElement("DeadNodes")
         edges = doc.createElement("Edges")
 
-        for o in self.nanoMunchers:
-            if o.state == States.drop:
+        for o in nanoMunchers:
+            if o.dropTime <= self.time:
                 n = doc.createElement("Muncher")
                 text = doc.createTextNode("(" + str(o.x) + ", " + str(o.y) + ")")
                 n.appendChild(text)
@@ -397,7 +400,18 @@ class Simulation:
         base.appendChild(dead_nodes)
         base.appendChild(edges)
         return doc.toxml()
-
+     
+    def openVis(self):
+        try:
+          self.vis = subprocess.Popen(["python", "nano_vis.py"], stdin=subprocess.PIPE)
+        except:
+          print "Failed to open visualization.  Is nano_vis.py in your directory?"
+          pass
+        self.writeVis("<NanoVis.SetupParams><DimX>20</DimX><DimY>10</DimY></NanoVis.SetupParams>")
+    
+    def writeVis(self, string):
+        if ((not (self.vis == None)) and not self.vis.stdin.closed):
+            self.vis.communicate(string + os.linesep)
 
 
 def runValidator(filename,programOutput):
