@@ -205,7 +205,7 @@ def main():
     # Hold the view.
     t_start = time.time()
     t_now = time.time()
-    while (t_now - t_start) < 1.0:
+    while (t_now - t_start) < 10.0:
         vis.redraw()
         t_now = time.time()
         time.sleep(0.032)

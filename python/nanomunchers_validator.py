@@ -132,7 +132,7 @@ class Simulation:
             self.removeAll(nanoMunchers,blackholes) # remove all blackholes.
             #print "-----------------------------Time step %d ends---------------------------------------" % self.time
             self.writeVis(self.toxml(nanoMunchers))
-        self.writeVis("")
+        #self.writeVis("") # Close the vis.
         print "Nano munchers used: %d\nNodes munched: %d out of: %d\nTime taken: %d" % (self.totalNanoMunchers,self.munched,self.totalNodes,self.time)
         if(self.munched == self.totalNodes):
             print "You munched everything"
