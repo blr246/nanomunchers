@@ -411,7 +411,7 @@ class Simulation:
     
     def writeVis(self, string):
         if ((not (self.vis == None)) and not self.vis.stdin.closed):
-            self.vis.communicate(string + os.linesep)
+            self.vis.stdin.write(string + os.linesep)
 
 
 def runValidator(filename,programOutput):
