@@ -66,7 +66,7 @@ class NanoVis(object):
     class GameUpdate(object):
         ''' A board state update. '''
 
-        def __init__(self, munchers, nodes, edges):
+        def __init__(self, munchers, live_nodes, dead_nodes, edges):
             self._munchers = munchers
             self._nodes = nodes
             self._edges = edges
@@ -92,7 +92,7 @@ class NanoVis(object):
         munchers = property(get_munchers, doc="Munchers currently on the board")
         live_nodes = property(get_live_nodes, doc="Food remaining on the board")
         dead_nodes = property(get_dead_nodes, doc="Food that has been removed from the board")
-        edges = property(get_nodes, doc="Edges between nodes")
+        edges = property(get_edges, doc="Edges between nodes")
 
     def __init__(self, setup_params):
         ''' Setup the game visualization plot. '''
@@ -131,25 +131,25 @@ class NanoVis(object):
         canvas blit.
         '''
         self._canvas.delete(tk.ALL)
-        for edge in edges
+        for edge in game_update.edges:
           self._canvas.create_line(edge[0][0], edge[0][1],
                                    edge[1][0], edge[1][1],
                                    dash=2, fill='black')
-        for node in live_nodes
+        for node in game_update.live_nodes:
           self._canvas.create_oval(self._vo_x + node[0] - 4,
                                    self._vo_y + node[1] - 4,
                                    self._vo_x + node[0] + 4,
                                    self._vo_y + node[1] + 4,
                                    stipple='gray50', width=0, fill='green')
 
-        for node in dead_nodes
+        for node in game_update.dead_nodes:
           self._canvas.create_oval(self._vo_x + node[0] - 4,
                                    self._vo_y + node[1] - 4,
                                    self._vo_x + node[0] + 4,
                                    self._vo_y + node[1] + 4,
                                    stipple='gray50', width=0, fill='gray')
 
-        for muncher in munchers
+        for muncher in game_update.munchers:
           self._canvas.create_oval(self._vo_x + muncher[0] - 1,
                                    self._vo_y + muncher[1] - 1,
                                    self._vo_x + muncher[0] + 1,
