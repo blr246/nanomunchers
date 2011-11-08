@@ -127,6 +127,7 @@ class Simulation:
             #remove blackholes
             self.removeAll(nanoMunchers,blackholes) # remove all blackholes.
             #print "-----------------------------Time step %d ends---------------------------------------" % self.time
+            #print self.toxml()
         print "Nano munchers used: %d\nNodes munched: %d out of: %d\nTime taken: %d" % (self.totalNanoMunchers,self.munched,self.totalNodes,self.time)
         if(self.munched == self.totalNodes):
             print "You munched everything"
@@ -358,7 +359,7 @@ class Simulation:
         # Create the minidom document
         doc = xml.dom.minidom.Document()
         # Create the <wml> base element
-        base = doc.createElement("NanoVis")
+        base = doc.createElement("NanoVis.GameUpdate")
         doc.appendChild(base)
         munchers = doc.createElement("Munchers")
         live_nodes = doc.createElement("LiveNodes")
@@ -381,7 +382,14 @@ class Simulation:
             else:
                 dead_nodes.appendChild(n)
 
-        #for e in self.edges
+        for e in self.edges:
+          one = self.nodes[e[0]]
+          two = self.nodes[e[1]]
+          n = doc.createElement("Edge")
+          text = doc.createTextNode(str(((one.x, one.y),(two.x, two.y))))
+          n.appendChild(text)
+          edges.appendChild(n)
+
         #Put the edge in edges
 
         base.appendChild(munchers)

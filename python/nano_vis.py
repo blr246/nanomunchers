@@ -65,19 +65,30 @@ class NanoVis(object):
 
     class GameUpdate(object):
         ''' A board state update. '''
+        global CELL_WIDTH
+        CELL_WIDTH=60
 
         def __init__(self, munchers, live_nodes, dead_nodes, edges):
             self._munchers = munchers
-            self._nodes = nodes
+            self._live_nodes = live_nodes
+            self._dead_nodes = dead_nodes
             self._edges = edges
 
         @classmethod
         def from_dom(cls, dom):
             ''' Create a GameUpdate from an xml dom. '''
-            munchers = eval(xml_get_ele_val_str(dom, 'Munchers'))
-            live_nodes = eval(xml_get_ele_val_str(dom, 'LiveNodes'))
-            dead_nodes = eval(xml_get_ele_val_str(dom, 'DeadNodes'))
-            edges = xml_get_ele_val_str(dom, 'Edges')
+            munchers = []
+            live_nodes = []
+            dead_nodes = []
+            edges = []
+            for muncher in xml_get_ele_dom(dom, 'Munchers').childNodes:
+                munchers.append(eval(muncher.firstChild.nodeValue))
+            for node in xml_get_ele_dom(dom, 'LiveNodes').childNodes:
+                live_nodes.append(eval(node.firstChild.nodeValue))
+            for node in xml_get_ele_dom(dom, 'DeadNodes').childNodes:
+                dead_nodes.append(eval(node.firstChild.nodeValue))
+            for edge in xml_get_ele_dom(dom, 'Edges').childNodes:
+                edges.append(eval(edge.firstChild.nodeValue))
             return cls(munchers, live_nodes, dead_nodes, edges)
 
         def get_munchers(self):
@@ -102,13 +113,13 @@ class NanoVis(object):
         self._boardPts = [(0.,0.), (setup_params.dimx,0.),
                           (setup_params.dimx,setup_params.dimy),
                           (0.,setup_params.dimy), (0., 0.)]
-        self._vo_x = 0.05 * setup_params.dimx
-        self._vo_y = 0.05 * setup_params.dimy
+        self._vo_x = 20# * setup_params.dimx
+        self._vo_y = 20# * setup_params.dimy
 
         self._canvas = tk.Canvas(self._root,
-                                 width=self._setup_params.dimx + 2*self._vo_x,
-                                 height=self._setup_params.dimy + 2*self._vo_y,
-                                 bg='black')
+                                 width=self._setup_params.dimx*CELL_WIDTH + 2*self._vo_x,
+                                 height=self._setup_params.dimy*CELL_WIDTH + 2*self._vo_y,
+                                 bg='beige')
         self._canvas.pack()
         self._draw_board()
         self._canvas.update()
@@ -116,10 +127,10 @@ class NanoVis(object):
     def _draw_board(self):
         EDGE_WIDTH = 2
         mins = (self._vo_x - EDGE_WIDTH, self._vo_y - EDGE_WIDTH)
-        maxs = (self._vo_x + self._setup_params.dimx + EDGE_WIDTH,
-                self._vo_y + self._setup_params.dimy + EDGE_WIDTH)
-        self._canvas.create_rectangle(mins, maxs,
-                                      outline='white', width=EDGE_WIDTH)
+        maxs = (self._vo_x + self._setup_params.dimx*CELL_WIDTH + EDGE_WIDTH,
+                self._vo_y + self._setup_params.dimy*CELL_WIDTH + EDGE_WIDTH)
+        #self._canvas.create_rectangle(mins, maxs,
+        #                              outline='white', width=EDGE_WIDTH)
 
     def redraw(self):
         ''' Draw the canvas again. '''
@@ -130,33 +141,41 @@ class NanoVis(object):
         Update the game visualization from the GameUpdate data using
         canvas blit.
         '''
+        time.sleep(0.2)
         self._canvas.delete(tk.ALL)
         for edge in game_update.edges:
-          self._canvas.create_line(edge[0][0], edge[0][1],
-                                   edge[1][0], edge[1][1],
-                                   dash=2, fill='black')
+          self._canvas.create_line(self._vo_x + self.t_x(edge[0][0]),
+                                   self._vo_y + self.t_y(edge[0][1]),
+                                   self._vo_x + self.t_x(edge[1][0]),
+                                   self._vo_y + self.t_y(edge[1][1]),
+                                   fill='black')
         for node in game_update.live_nodes:
-          self._canvas.create_oval(self._vo_x + node[0] - 4,
-                                   self._vo_y + node[1] - 4,
-                                   self._vo_x + node[0] + 4,
-                                   self._vo_y + node[1] + 4,
-                                   stipple='gray50', width=0, fill='green')
+          self._canvas.create_oval(self._vo_x + self.t_x(node[0]) - 15,
+                                   self._vo_y + self.t_y(node[1]) - 15,
+                                   self._vo_x + self.t_x(node[0]) + 15,
+                                   self._vo_y + self.t_y(node[1]) + 15,
+                                   stipple='gray50', width=0, fill='darkgreen')
 
         for node in game_update.dead_nodes:
-          self._canvas.create_oval(self._vo_x + node[0] - 4,
-                                   self._vo_y + node[1] - 4,
-                                   self._vo_x + node[0] + 4,
-                                   self._vo_y + node[1] + 4,
+          self._canvas.create_oval(self._vo_x + self.t_x(node[0]) - 15,
+                                   self._vo_y + self.t_y(node[1]) - 15,
+                                   self._vo_x + self.t_x(node[0]) + 15,
+                                   self._vo_y + self.t_y(node[1]) + 15,
                                    stipple='gray50', width=0, fill='gray')
 
         for muncher in game_update.munchers:
-          self._canvas.create_oval(self._vo_x + muncher[0] - 1,
-                                   self._vo_y + muncher[1] - 1,
-                                   self._vo_x + muncher[0] + 1,
-                                   self._vo_y + muncher[1] + 1,
+          self._canvas.create_oval(self._vo_x + self.t_x(muncher[0]) - 10,
+                                   self._vo_y + self.t_y(muncher[1]) - 10,
+                                   self._vo_x + self.t_x(muncher[0]) + 10,
+                                   self._vo_y + self.t_y(muncher[1]) + 10,
                                    width=0, fill='red')
         self._draw_board()
         self._canvas.update()
+
+    def t_x(self, x):
+        return x*CELL_WIDTH + CELL_WIDTH/2
+    def t_y(self,y):
+        return (10 - y)*CELL_WIDTH - CELL_WIDTH/2
 
 
 def main():
