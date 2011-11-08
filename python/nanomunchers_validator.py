@@ -405,7 +405,7 @@ class Simulation:
      
     def openVis(self):
         try:
-          self.vis = subprocess.Popen(["python", "nano_vis.py"], stdin=subprocess.PIPE)
+          self.vis = subprocess.Popen(["python", "nano_vis.py"], stdin=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(sys.argv[0])))
         except:
           print "Failed to open visualization.  Is nano_vis.py in your directory?"
           pass
