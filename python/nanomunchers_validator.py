@@ -1,4 +1,4 @@
-import sys,random
+import sys,random,xml.dom.minidom
 from nanomunchers_serialize import MuncherPresenter
 
 class NanoMunchers(MuncherPresenter):
@@ -353,6 +353,44 @@ class Simulation:
                 return True      
         else:
             return False
+
+    def toxml(self):
+        # Create the minidom document
+        doc = xml.dom.minidom.Document()
+        # Create the <wml> base element
+        base = doc.createElement("NanoVis")
+        doc.appendChild(base)
+        munchers = doc.createElement("Munchers")
+        live_nodes = doc.createElement("LiveNodes")
+        dead_nodes = doc.createElement("DeadNodes")
+        edges = doc.createElement("Edges")
+
+        for o in self.nanoMunchers:
+            if o.state == States.drop:
+                n = doc.createElement("Muncher")
+                text = doc.createTextNode("(" + str(o.x) + ", " + str(o.y) + ")")
+                n.appendChild(text)
+                munchers.appendChild(n)
+
+        for k,o in self.nodes.iteritems():
+            n = doc.createElement("Node")
+            text = doc.createTextNode("(" + str(o.x) + ", " + str(o.y) + ")")
+            n.appendChild(text)
+            if o.state == NodeState.notMunched:
+                live_nodes.appendChild(n)
+            else:
+                dead_nodes.appendChild(n)
+
+        #for e in self.edges
+        #Put the edge in edges
+
+        base.appendChild(munchers)
+        base.appendChild(live_nodes)
+        base.appendChild(dead_nodes)
+        base.appendChild(edges)
+        return doc.toxml()
+
+
 
 def runValidator(filename,programOutput):
     munchPresenters = FormatValidator().validate(programOutput)
