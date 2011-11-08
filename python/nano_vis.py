@@ -154,14 +154,14 @@ class NanoVis(object):
                                    self._vo_y + self.t_y(node[1]) - 15,
                                    self._vo_x + self.t_x(node[0]) + 15,
                                    self._vo_y + self.t_y(node[1]) + 15,
-                                   stipple='gray50', width=0, fill='darkgreen')
+                                  width=0, fill='darkgreen')
 
         for node in game_update.dead_nodes:
           self._canvas.create_oval(self._vo_x + self.t_x(node[0]) - 15,
                                    self._vo_y + self.t_y(node[1]) - 15,
                                    self._vo_x + self.t_x(node[0]) + 15,
                                    self._vo_y + self.t_y(node[1]) + 15,
-                                   stipple='gray50', width=0, fill='gray')
+                                   width=0, fill='gray')
 
         for muncher in game_update.munchers:
           self._canvas.create_oval(self._vo_x + self.t_x(muncher[0]) - 10,
