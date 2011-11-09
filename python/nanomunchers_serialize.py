@@ -52,6 +52,8 @@ class MuncherPresenter:
   def to_s(self):
     return str(self.dropTime) + " " + str(self.x) + " " + str(self.y) + " " + self.program
 
+  def __repr__(self):
+    return self.to_s()
 #ml = []
 #ml.append(MuncherPresenter(0,1,5,"LURD"))
 #printMuncherList(ml)
